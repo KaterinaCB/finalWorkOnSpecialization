@@ -1,0 +1,164 @@
+Задание 7
+CREATE DATABASE Human_friends;
+
+Задание 8
+USE Human_friends;
+
+CREATE TABLE animal_classes
+(	
+	Id INT auto_increment primary key,
+	Class_name varchar(20)
+);
+
+insert into animal_classes (Class_name)
+values ('Въючные'), ('Домашние');
+
+CREATE TABLE packed_animals
+(
+	Id INT auto_increment primary key,
+    Genus_name varchar(20),
+    Class_id INT,
+    foreign key (Class_id) references animal_classes (Id) on delete cascade on update cascade
+);
+
+insert into packed_animals (Genus_name, Class_id)
+values ('Лошади', 1), ('Ослы', 1), ('Верблюды', 1);
+
+create table home_animals
+(
+	Id INT auto_increment primary key,
+    Genus_name varchar(20),
+    Class_id INT,
+    foreign key (Class_id) references animal_classes (Id) on delete cascade on update cascade
+);
+
+insert into home_animals (Genus_name, Class_id)
+values ('Кошки', 2), ('Собаки', 2), ('Хомяки', 2);
+
+create table cats
+(
+	Id INT auto_increment primary key,
+    	Name varchar(20),
+    	Birthday date,
+    	Commands varchar(50),
+    	Genus_id int,
+    	foreign key (Genus_id) references home_animals (Id) on delete cascade on update cascade
+);
+
+create table dogs
+(
+	Id INT auto_increment primary key,
+   	Name varchar(20),
+   	Birthday date,
+    	Commands varchar(50),
+    	Genus_id int,
+    	foreign key (Genus_id) references home_animals (Id) on delete cascade on update cascade
+);
+
+create table hamsters
+(
+	Id INT auto_increment primary key,
+    Name varchar(20),
+    Birthday date,
+    Commands varchar(50),
+    Genus_id int,
+    foreign key (Genus_id) references home_animals (Id) on delete cascade on update cascade
+);
+
+create table horses 
+(
+	Id INT auto_increment primary key,
+    Name varchar(20),
+    Birthday date,
+    Commands varchar(50),
+    Genus_id int,
+    foreign key (Genus_id) references packed_animals (Id) on delete cascade on update cascade
+);
+
+create table donkeys 
+(
+	Id INT auto_increment primary key,
+    Name varchar(20),
+    Birthday date,
+    Commands varchar(50),
+    Genus_id int,
+    foreign key (Genus_id) references packed_animals (Id) on delete cascade on update cascade
+);
+
+create table camels 
+(
+	Id INT auto_increment primary key,
+    Name varchar(20),
+    Birthday date,
+    Commands varchar(50),
+    Genus_id int,
+    foreign key (Genus_id) references packed_animals (Id) on delete cascade on update cascade
+);
+
+Задание 9
+insert into cats (Name, Birthday, Commands, Genus_id)
+values ('Пузан', '2020-02-02', 'Дай пять!', 1), ('Босян', '2018-03-03', 'Кто хороший котик?', 1), ('Анжелика', '2015-05-05', 'Идешь?', 1);
+
+insert into dogs (Name, Birthday, Commands, Genus_id)
+values ('Черныш', '2020-06-06', 'ко мне, лежать, сидеть, дай лапу, голос', 2), ('Пончо', '2019-07-07', 'дай лапу, голос', 2), ('Кексик', '2021-02-09', 'место, сидеть, лежать, дай лапу, голос, фу, фас', 2);
+
+insert into hamsters (Name, Birthday, Commands, Genus_id)
+values ('Боба', '2023-06-06', null, 3), ('Толкач', '2024-09-01', null, 3), ('Маринэ', '2024-03-05', null, 3);
+
+insert into horses (Name, Birthday, Commands, Genus_id)
+values ('Леди', '2020-06-06', 'бегом, тише, брр, хоп' , 1), ('Джозеф', '2018-09-01', 'бегом, брр', 1), ('Клава', '2021-03-05', 'тише', 1);
+
+insert into donkeys (Name, Birthday, Commands, Genus_id)
+values ('Мартин', '2020-06-06', null , 2), ('Осел', '2018-09-01', null, 2), ('Паровоз', '2021-03-05', null, 2);
+
+insert into camels (Name, Birthday, Commands, Genus_id)
+values ('Слюныч', '2020-06-06', null , 3), ('Горбатыч', '2018-09-01', null, 3), ('Водовоз', '2021-03-05', null, 3);
+
+Задание 10
+set sql_safe_updates = 0;
+delete from camels;
+select Name, Birthday, Commands from horses
+union select Name, Birthday, Commands from donkeys;
+
+Задание 11
+create temporary table animals as
+select *, 'Лошади' as genus from horses
+union select *, 'Ослы' as genus from donkeys
+union select *, 'Собаки' as genus from dogs
+union select *, 'Кошки' as genus from cats
+union select *, 'Хомяки' as genus from hamsters;
+
+create table yang_animal as
+select Name, Birthday, Commands, genus, timestampdiff(MONTH, Birthday, CURDATE()) as Age_in_month
+from animals where Birthday between adddate(curdate(), interval -3 year) and adddate(curdate(), interval -1 year);
+
+select * from yang_animal;
+
+Задание 12
+select h.Name, h.Birthday, h.Commands, pa.Genus_name, ya.Age_in_month
+from horses h
+left join yang_animal ya on ya.Name = h.Name
+left join packed_animals pa on pa.Id = h.Genus_id
+union
+select d.Name, d.Birthday, d.Commands, pa.Genus_name, ya.Age_in_month
+from donkeys d
+left join yang_animal ya on ya.Name = d.Name
+left join packed_animals pa on pa.Id = d.Genus_id
+union
+select c.Name, c.Birthday, c.Commands, ha.Genus_name, ya.Age_in_month
+from cats c
+left join yang_animal ya on ya.Name = c.Name
+left join home_animals ha on ha.Id = c.Genus_id
+union
+select d.Name, d.Birthday, d.Commands, ha.Genus_name, ya.Age_in_month
+from dogs d
+left join yang_animal ya on ya.Name = d.Name
+left join home_animals ha on ha.Id = d.Genus_id
+union
+select hm.Name, hm.Birthday, hm.Commands, ha.Genus_name, ya.Age_in_month
+from hamsters hm
+left join yang_animal ya on ya.Name = hm.Name
+left join home_animals ha on ha.Id = hm.Genus_id;
+
+
+
